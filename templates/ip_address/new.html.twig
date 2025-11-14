@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New IpAddress{% endblock %}
+
+{% block body %}
+    <h1>Create new IpAddress</h1>
+
+    {{ include('ip_address/_form.html.twig') }}
+
+    <a href="{{ path('app_ip_address_index') }}">back to list</a>
+{% endblock %}

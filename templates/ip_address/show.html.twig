@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}IpAddress{% endblock %}
+
+{% block body %}
+    <h1>IpAddress</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ ip_address.id }}</td>
+            </tr>
+            <tr>
+                <th>Ip</th>
+                <td>{{ ip_address.ip }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_ip_address_index') }}">back to list</a>
+
+    <a href="{{ path('app_ip_address_edit', {'id': ip_address.id}) }}">edit</a>
+
+    {{ include('ip_address/_delete_form.html.twig') }}
+{% endblock %}

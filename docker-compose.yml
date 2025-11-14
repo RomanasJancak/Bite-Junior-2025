@@ -1,4 +1,4 @@
-version: "3.8"
+#version: "3.8"
 
 services:
   php:
@@ -6,6 +6,8 @@ services:
     volumes:
       - .:/var/www/symfony
     working_dir: /var/www/symfony
+    ports:
+      - "8000:8000"
     depends_on:
       - db
 
@@ -28,4 +30,4 @@ services:
       MYSQL_USER: symfony
       MYSQL_PASSWORD: symfony
     ports:
-      - "3306:3306"
+      - "3307:3306"
