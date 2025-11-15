@@ -10,6 +10,8 @@
             <tr>
                 <th>Id</th>
                 <th>Ip</th>
+                <th>Created at</th>
+                <th>Updated at</th>
                 <th>actions</th>
             </tr>
         </thead>
@@ -18,6 +20,8 @@
             <tr>
                 <td>{{ ip_address.id }}</td>
                 <td>{{ ip_address.ip }}</td>
+                <td>{{ ip_address.getCreatedAt ? ip_address.getCreatedAt|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ ip_address.updatedAt ? ip_address.updatedAt|date('Y-m-d H:i:s') : '' }}</td>
                 <td>
                     <a href="{{ path('app_ip_address_show', {'id': ip_address.id}) }}">show</a>
                     <a href="{{ path('app_ip_address_edit', {'id': ip_address.id}) }}">edit</a>

@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20251113104938 extends AbstractMigration
+final class Version2025_11_15_191513104938 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -23,7 +23,16 @@ final class Version20251113104938 extends AbstractMigration
         $this->addSql('CREATE TABLE ip_address 
         ( id INT AUTO_INCREMENT NOT NULL,
           ip VARCHAR(15) NOT NULL, 
+          created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
           PRIMARY KEY(id)
+        ) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
+        $this->addSql('CREATE TABLE blacklist 
+        ( id INT AUTO_INCREMENT NOT NULL,
+          ip_address_id INT NOT NULL UNIQUE, 
+          created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY(id),
+          CONSTRAINT foreignKey_IpAddress FOREIGN KEY (ip_address_id) REFERENCES ip_address(id) ON DELETE CASCADE
         ) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
     }
 

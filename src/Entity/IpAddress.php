@@ -15,6 +15,13 @@ class IpAddress
 
     #[ORM\Column(length: 15)]
     private ?string $ip = null;
+    #[ORM\Column(name: "created_at", type: "datetime_immutable")]
+    private ?\DateTimeImmutable $createdAt = null;
+    #[ORM\Column(name: "updated_at", type: "datetime_immutable")]
+    private ?\DateTimeImmutable $updatedAt = null;
+
+    #[ORM\OneToOne(mappedBy: 'ipAddress', cascade: ['persist', 'remove'])]
+    private ?BlackList $blacklisted = null;
 
     public function getId(): ?int
     {
@@ -29,6 +36,41 @@ class IpAddress
     public function setIp(string $ip): static
     {
         $this->ip = $ip;
+
+        return $this;
+    }
+    public function getAddress(): ?string
+    {
+        return $this->ip;
+    }
+    public function setAddress(string $address): static
+    {
+        $this->ip = $address;
+
+        return $this;
+    }
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updatedAt;
+    }
+
+    public function getBlacklisted(): ?BlackList
+    {
+        return $this->blacklisted;
+    }
+
+    public function setBlacklisted(BlackList $blacklisted): static
+    {
+        // set the owning side of the relation if necessary
+        if ($blacklisted->getIpAddress() !== $this) {
+            $blacklisted->setIpAddress($this);
+        }
+
+        $this->blacklisted = $blacklisted;
 
         return $this;
     }
