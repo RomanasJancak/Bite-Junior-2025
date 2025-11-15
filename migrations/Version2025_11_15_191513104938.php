@@ -27,6 +27,8 @@ final class Version2025_11_15_191513104938 extends AbstractMigration
           updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
           PRIMARY KEY(id)
         ) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
+
+
         $this->addSql('CREATE TABLE blacklist 
         ( id INT AUTO_INCREMENT NOT NULL,
           ip_address_id INT NOT NULL UNIQUE, 
@@ -40,5 +42,6 @@ final class Version2025_11_15_191513104938 extends AbstractMigration
     {
         // this down() migration is auto-generated, please modify it to your needs
         $this->addSql('DROP TABLE ip_address');
+        $this->addSql('DROP TABLE blacklist');
     }
 }
