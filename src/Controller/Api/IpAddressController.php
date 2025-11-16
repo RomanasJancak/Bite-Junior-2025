@@ -188,7 +188,6 @@ class IpAddressController extends AbstractController
           }
         }
         $em->flush();
-        $message[] = "Deletion process completed.";
         return $this->json([
           'success' => true,
           'message' => $message,
