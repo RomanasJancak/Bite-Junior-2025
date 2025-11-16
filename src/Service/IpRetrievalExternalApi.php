@@ -17,9 +17,9 @@ class IpRetrievalExternalApi
       'GET',
       $url
     );
-
+    //return $this->handleResponse($response);
     if ($response->getStatusCode() !== 200) {
-      throw new \Exception('Failed to fetch IP data from external API', $response->getStatusCode(),$url);
+      throw new \Exception('Failed to fetch IP data from external API');
     }
 
     $data = $response->toArray();

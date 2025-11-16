@@ -83,6 +83,9 @@ class IpAddress
     }
     public function isTooOld():bool
     {
+        if (!$this->updatedAt) {
+            return true;
+        }
         $now = new \DateTimeImmutable();
         $interval = $now->getTimestamp() - $this->updatedAt->getTimestamp();
         $lifeCycleSeconds = (int)$_ENV['IP_LIFE_CYCLE_SECONDS'];

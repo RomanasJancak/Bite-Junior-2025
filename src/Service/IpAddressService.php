@@ -69,6 +69,17 @@ class IpAddressService
     $blacklistedIps = array_filter($ips, fn(IpAddress $ip) => $ip->isBlacklisted());
     return $blacklistedIps;
   }
+  public function removeBlacklistFromArray(array $ips): array
+  {
+    $cleanedIps = [];
+    foreach ($ips as $ip) {
+      $ipAddress = $this->repo->findOneBy(['ip' => $ip]);
+      if ($ipAddress && !$ipAddress->isBlacklisted()) {
+        $cleanedIps[] = $ipAddress;
+      }
+    }
+    return $cleanedIps;
+  }
   public function getBlackListedIpsFromArray(array $ips): array
   {
     $blacklistedIps = [];
@@ -104,6 +115,12 @@ class IpAddressService
     ->findOneBy(['ip' => $ip]);
     if($ipAddress && $ipAddress->isBlacklisted()){
       throw new \IpBlacklistedException($ip);
+    }
+    if (!$ipAddress) {
+      $ipAddress = new IpAddress();
+      $ipAddress->setIp($ip);
+      $this->em->persist($ipAddress);
+      $this->em->flush();
     }
     if ($ipAddress && !$ipAddress->isTooOld()) {
       return $ipAddress;
