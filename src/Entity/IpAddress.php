@@ -15,9 +15,10 @@ class IpAddress
 
     #[ORM\Column(length: 15)]
     private ?string $ip = null;
-    #[ORM\Column(name: "created_at", type: "datetime_immutable")]
+    #[ORM\Column(name: "created_at", type: "datetime_immutable", insertable: false, updatable: false)]
     private ?\DateTimeImmutable $createdAt = null;
-    #[ORM\Column(name: "updated_at", type: "datetime_immutable")]
+
+    #[ORM\Column(name: "updated_at", type: "datetime_immutable", insertable: false, updatable: false)]
     private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\OneToOne(mappedBy: 'ipAddress', cascade: ['persist', 'remove'])]
