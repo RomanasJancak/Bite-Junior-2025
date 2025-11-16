@@ -178,21 +178,21 @@ class IpAddressController extends AbstractController
             $message[] = "IP address '$ip' is not valid.";
             continue;
           }
-          $ip = $em->getRepository(IpAddress::class)->find($ip);
-          
+          $ip = $em->getRepository(IpAddress::class)->findOneBy(['ip' => $ip]);
           if ($ip) {
             $message[] = "Deleted IP address: " . $ip->getIp();
-              $em->remove($ip); // blacklist ir taip dings / cascade
+            $em->remove($ip); // blacklist ir taip dings / cascade
+            $em->flush();
           }else{
             $message[] = "IP address '$ip' not found.";
           }
         }
         $em->flush();
-
+        $message[] = "Deletion process completed.";
         return $this->json([
           'success' => true,
           'message' => $message,
-        ], 204);
+        ], 200);
       } catch (\Throwable $e) {
         if ($this->getParameter('kernel.environment') === 'dev') {
           return $this->json([
