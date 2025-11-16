@@ -58,7 +58,10 @@ class IpAddress
     {
         return $this->updatedAt;
     }
-
+    public function isBlacklisted(): bool
+    {
+        return $this->blacklisted !== null;
+    }
     public function getBlacklisted(): ?BlackList
     {
         return $this->blacklisted;
@@ -74,5 +77,12 @@ class IpAddress
         $this->blacklisted = $blacklisted;
 
         return $this;
+    }
+    public function isTooOld():bool
+    {
+        $now = new \DateTimeImmutable();
+        $interval = $now->getTimestamp() - $this->updatedAt->getTimestamp();
+        $lifeCycleSeconds = (int)$_ENV['IP_LIFE_CYCLE_SECONDS'];
+        return $interval > $lifeCycleSeconds;
     }
 }

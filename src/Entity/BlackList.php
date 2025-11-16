@@ -15,7 +15,7 @@ class BlackList
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\OneToOne(inversedBy: 'blacklisted', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(inversedBy: 'blacklisted')]
     #[ORM\JoinColumn(nullable: false)]
     private ?IpAddress $ipAddress = null;
 

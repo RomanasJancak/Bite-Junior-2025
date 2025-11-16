@@ -40,6 +40,7 @@ class IpAddressRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+    /* Currently not used, will leave for future use 2025-11-16 */
     public function findOneByAddress(string $ip): ?IpAddress
     {
         return $this->createQueryBuilder('i')
