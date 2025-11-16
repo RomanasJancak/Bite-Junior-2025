@@ -22,7 +22,8 @@ final class Version2025_11_15_191513104939 extends AbstractMigration
         // this up() migration is auto-generated, please modify it to your needs
         $this->addSql('CREATE TABLE ip_address 
         ( id INT AUTO_INCREMENT NOT NULL,
-          ip VARCHAR(15) NOT NULL, 
+          ip VARCHAR(15) NOT NULL,
+          json_data JSON DEFAULT NULL, 
           created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
           updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
           PRIMARY KEY(id)
