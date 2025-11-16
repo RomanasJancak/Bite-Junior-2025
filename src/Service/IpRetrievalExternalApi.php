@@ -12,13 +12,14 @@ class IpRetrievalExternalApi
   public function fetchData(string $ip) : array
   {
     $apiKey = $_ENV['IPSTACK_API_KEY'];
+    $url = $_ENV['IPSTACK_API_URL'] . "{$ip}?access_key={$apiKey}";
     $response = $this->httpClient->request(
       'GET',
-      "http://api.ipstack.com/{$ip}?access_key={$apiKey}"
+      $url
     );
 
     if ($response->getStatusCode() !== 200) {
-      throw new \Exception('Failed to fetch IP data');
+      throw new \Exception('Failed to fetch IP data from external API', $response->getStatusCode(),$url);
     }
 
     $data = $response->toArray();
