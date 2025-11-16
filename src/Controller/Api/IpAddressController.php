@@ -18,61 +18,9 @@ use App\Exception\IpBlackListedException;
 
 #[Route('/api/ip', name: 'api_ip_address_')]
 class IpAddressController extends AbstractController
-{
-    //#[Route('', name: 'index', methods: ['GET'])]
-    public function index(IpAddressRepository $ipRepository, IpAddressService $ipAddressService): JsonResponse
-    {
-      try {
-        //$ips = $ipRepository->findAll();
-        $ips = $ipAddressService->getAllFresh();
-
-        $data = array_map(fn(IpAddress $ip) => [
-            'id' => $ip->getId(),
-            'address' => $ip->getAddress(),
-            'created_at' => $ip->getCreatedAt()?->format('Y-m-d H:i:s'),
-            'updated_at' => $ip->getUpdatedAt()?->format('Y-m-d H:i:s'),
-            'data' => $ip->getJsonData(),
-        ], $ips);
-
-        return $this->json($data);
-      
-      } catch (\Throwable $e) {
-        if ($this->getParameter('kernel.environment') === 'dev') {
-          return $this->json([
-              'error' => 'Internal server error',
-              'message' => $e->getMessage(),
-              'file' => $e->getFile(),
-              'line' => $e->getLine(),
-          ], 500);
-        }
-      }
-    }
-
-    //#[Route('', name: 'create', methods: ['POST'])]
-    public function create(Request $request, EntityManagerInterface $em, IpAddressService $ipAddressService): JsonResponse
-    {
-        $payload = json_decode($request->getContent(), true);
-
-        if (empty($payload['address'])) {
-            return $this->json(['error' => 'Missing "address"'], 400);
-        }
-        $ip = $ipAddressService->getOneFresh($payload['address']);
-        $em->persist($ip);
-        $em->flush();
-
-        return $this->json([
-            'id' => $ip->getId(),
-            'address' => $ip->getAddress(),
-            'createdAt' => $ip->getCreatedAt()?->format('Y-m-d H:i:s'),
-        ], 201);
-    }
-    
+{   
     #[Route('/find/{address}', name: 'find', methods: ['GET'])]
-    public function find(
-      string $address, 
-      EntityManagerInterface $em,
-      IpRetrievalExternalApi $ApiService,
-      IpAddressService $ipAddressService): JsonResponse
+    public function find(string $address, EntityManagerInterface $em,IpAddressService $ipAddressService): JsonResponse
     {
       try{
         $ips = explode(',', $address);
@@ -82,6 +30,10 @@ class IpAddressController extends AbstractController
         $message = [];
 
         foreach($ips as $address){
+          if(filter_var($address, FILTER_VALIDATE_IP) === false) {
+            $message[] = "IP address '$address' is not valid.";
+            continue;
+          }
           $found = $em->getRepository(IpAddress::class)->findOneBy(['ip' => $address]);
           if(!$found){
             $found = $ipAddressService->getOneFresh($address);
@@ -123,33 +75,6 @@ class IpAddressController extends AbstractController
         }
       }
     }
-    //#[Route('/{id}', name: 'show', methods: ['GET'])]
-    public function show(int $id,EntityManagerInterface $em): JsonResponse
-    {
-      try{
-        $ip = $em->getRepository(IpAddress::class)->find($id);
-
-        if (!$ip) {
-            return $this->json(['error' => 'IP address not found'], 404);
-        }
-        return $this->json([
-            'id' => $ip->getId(),
-            'address' => $ip->getAddress(),
-            'createdAt' => $ip->getCreatedAt()?->format('Y-m-d H:i:s'),
-            'updatedAt' => $ip->getUpdatedAt()?->format('Y-m-d H:i:s'),
-            'jsonData' => $ip->getJsonData(),
-        ]);
-       } catch (\Throwable $e) {
-        if ($this->getParameter('kernel.environment') === 'dev') {
-          return $this->json([
-              'error' => 'Internal server error',
-              'message' => $e->getMessage(),
-              'file' => $e->getFile(),
-              'line' => $e->getLine(),
-          ], 500);
-        }
-      }
-    }
     
     #[Route('/blacklist_add/{address}', name: 'ban', methods: ['PATCH'])]
     public function ban(string $address, EntityManagerInterface $em): JsonResponse
@@ -161,6 +86,10 @@ class IpAddressController extends AbstractController
         }
         $message = [];
         foreach($ips as $ip){
+          if(filter_var($ip, FILTER_VALIDATE_IP) === false) {
+            $message[] = "IP address '$ip' is not valid.";
+            continue;
+          }
           $ip = $em->getRepository(IpAddress::class)->findOneBy(['ip' => $ip]);
           if(!$ip){
             $message[] = "IP address '$ip' not found.";
@@ -202,6 +131,10 @@ class IpAddressController extends AbstractController
         }
         $message = [];
         foreach($ips as $ip){
+          if(filter_var($ip, FILTER_VALIDATE_IP) === false) {
+            $message[] = "IP address '$ip' is not valid.";
+            continue;
+          }
           $ipEntity = $em->getRepository(IpAddress::class)->findOneBy(['ip' => $ip]);
           if(!$ipEntity){
             $message[] = "IP address '$ip' not found.";
@@ -241,6 +174,10 @@ class IpAddressController extends AbstractController
         }
         $message = [];
         foreach($ips as $ip){
+          if(filter_var($ip, FILTER_VALIDATE_IP) === false) {
+            $message[] = "IP address '$ip' is not valid.";
+            continue;
+          }
           $ip = $em->getRepository(IpAddress::class)->find($ip);
           
           if ($ip) {
