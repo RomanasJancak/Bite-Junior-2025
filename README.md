@@ -60,6 +60,20 @@ IP_MAX_DELETE_QUANTITY=10 // maximum alowed IP addresses deletion at once per AP
 IP_MAX_BAN_QUANTITY=10 // maximum allowed IP bans per API request
 IP_MAX_UNBAN_QUANTITY=10 // maximum allowed IP unbans per API request
 
+ - API ENDPOINTS 
+
+ 1. /api/ip/find/{address} - valid IPV4 addreses supports multiple IP's but needs to be separated by comma ",". Used to get data of the IP(s). Informs user if the ip format is invalid or the IP is blacklisted.
+ 2. /api/ip/blacklist_ad/{ip} - valid IPV4 addreses supports multiple IP's but needs to be separated by comma "," Used to blacklist IP(s). Informs user if the ip is : not found in the list [1],is already int the blacklist.
+ 3. /api/ip/blacklist_remove/{ip} - valid IPV4 address, supports multiple IP's but need to be separated by comma "," Used to remove IP(S) from the blacklist. Informs user if the ip is not found or ip is not in blacklist.
+ 4. /api/ip/{ips} - alid IPV4 address, supports multiple IP's but need to be separated by comma ",". Used to delete IP(s). Informs the user if IP is not found. Blacklist entry is automatically deleted "CASCADE"[2]
+
+# Design desitions : 
+ - as much as possible separate logic where it is possible. Used service class to lithen entity and controllers.
+ - Created custom Exception class but for faster exectution of the tasks deciced against it. Errors are handeled by custom messages. 
+ - Used try catch block and condition cheking on enviroment for easier code debuging.
+ - Used CASCADE on blacklist to implemt idea "datbase should be able to function regardles backend implementation"
+ - Left in the code base only the minimum code. Not much use to think ahead when there are lots unknows about programs usage. Too much overthinking (or over preparness ) might waste time.
+
 ## Future release notes :
 - If external API allows bulk Ednpoint then Implement bulk endpoint call to that API
 - Implement API KEY for app usage( users, roles , permissions will have to be done )
@@ -67,3 +81,5 @@ IP_MAX_UNBAN_QUANTITY=10 // maximum allowed IP unbans per API request
 
 ## Questions 
 - Should BAN of IP persist after the IP is deleted ? If yes what are the criteria of. (Current Implementation is that bans dissapear on deletion of IP)
+- [1] If Ip is not found during the ban should the program add the IP and then ban it ?
+- [2] On Ip delete should that IP's ban remain ?
