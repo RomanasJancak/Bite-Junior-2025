@@ -24,6 +24,9 @@ class IpAddress
     #[ORM\OneToOne(mappedBy: 'ipAddress', cascade: ['persist', 'remove'])]
     private ?BlackList $blacklisted = null;
 
+    #[ORM\Column(name: "json_data", type: 'json', nullable: true)]
+    private ?array $jsonData = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -84,5 +87,15 @@ class IpAddress
         $interval = $now->getTimestamp() - $this->updatedAt->getTimestamp();
         $lifeCycleSeconds = (int)$_ENV['IP_LIFE_CYCLE_SECONDS'];
         return $interval > $lifeCycleSeconds;
+    }
+    public function getJsonData(): ?array
+    {
+        return $this->jsonData;
+    }
+    public function setJsonData(?array $jsonData): static
+    {
+        $this->jsonData = $jsonData;
+
+        return $this;
     }
 }

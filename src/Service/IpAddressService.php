@@ -53,12 +53,30 @@ class IpAddressService
         $data = $this->apiClient->fetchData($ip->getAddress());
 
         $ip->setIp($data['ip']);
-        $ip->setUpdatedAt(new \DateTime());
-
+        $ip->setJsonData($data);
         $this->em->persist($ip);
       }
     }
-
+    $this->em->flush();
+    //dd($data);
     return $ips;
+  }
+  public function getOneFresh(string $ip): IpAddress
+  {
+    $ipAddress = $this->repo
+    //->findOneByAddress($ip);
+    ->findOneBy(['ip' => $ip]);
+
+    if ($ipAddress && !$ipAddress->isTooOld()) {
+      return $ipAddress;
+    }
+
+    $data = $this->apiClient->fetchData($ip);
+    $ipAddress->setIp($data['ip']);
+    $ipAddress->setJsonData($data);
+    $this->em->persist($ipAddress);
+    $this->em->flush();
+
+    return $ipAddress;
   }
 }
