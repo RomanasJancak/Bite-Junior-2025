@@ -9,6 +9,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+//--------------
+use src\Service\IpRetrievalExternalApi;
+
 
 #[Route('/api/ip-addresses', name: 'api_ip_address_')]
 class IpAddressController extends AbstractController
@@ -52,6 +55,7 @@ class IpAddressController extends AbstractController
     }
 
     #[Route('/{id}', name: 'show', methods: ['GET'])]
+    
     public function show(IpAddress $ip): JsonResponse
     {
         return $this->json([
@@ -60,6 +64,7 @@ class IpAddressController extends AbstractController
             'createdAt' => $ip->getCreatedAt()?->format('Y-m-d H:i:s'),
         ]);
     }
+    
 
     #[Route('/{id}', name: 'delete', methods: ['DELETE'])]
     public function delete(IpAddress $ip, EntityManagerInterface $em): JsonResponse
