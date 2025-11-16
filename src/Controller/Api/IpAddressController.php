@@ -45,7 +45,6 @@ class IpAddressController extends AbstractController
               $message[] = "IP address '$address' is blacklisted.";
             }else if($found->isTooOld()){
               $found = $ipAddressService->getOneFresh($address);
-              $found->setAddress($found->getAddress());
               $em->persist($found);
               $em->flush();
               $message[] = $found->getJsonData();
