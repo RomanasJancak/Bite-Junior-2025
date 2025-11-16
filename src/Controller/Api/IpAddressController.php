@@ -175,6 +175,7 @@ class IpAddressController extends AbstractController
           $blacklistItem->setIpAddress($ip);
           $em->persist($blacklistItem);
           $em->flush();
+          $message[] = "IP address '$ip' added to blacklist successfully.";
         }
         return $this->json([
             'success' => true,

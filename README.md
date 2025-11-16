@@ -51,6 +51,19 @@ A Docker environment has been provided for your convenience.
 
 
 ## Runing the code :
+Before using the program in .env change variable "IPSTACK_API_KEY" to new API_KEY. Current API_KEY has limit of request per month.
+Other variables in .env file
+
+IP_LIFE_CYCLE_SECONDS=86400 // curently 1 day as requirments of the task
+IP_MAX_FIND_QUNANTITY=5 // maximum allowed IP addreses search at once per API request
+IP_MAX_DELETE_QUANTITY=10 // maximum alowed IP addresses deletion at once per API request 
+IP_MAX_BAN_QUANTITY=10 // maximum allowed IP bans per API request
+IP_MAX_UNBAN_QUANTITY=10 // maximum allowed IP unbans per API request
 
 ## Future release notes :
 - If external API allows bulk Ednpoint then Implement bulk endpoint call to that API
+- Implement API KEY for app usage( users, roles , permissions will have to be done )
+- !Implement error handling from EXTERNAL API (due to limited time it was not done.)
+
+## Questions 
+- Should BAN of IP persist after the IP is deleted ? If yes what are the criteria of. (Current Implementation is that bans dissapear on deletion of IP)
