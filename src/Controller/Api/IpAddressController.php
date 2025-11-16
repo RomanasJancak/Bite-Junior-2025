@@ -75,7 +75,7 @@ class IpAddressController extends AbstractController
       }
     }
     
-    #[Route('/blacklist_add/{address}', name: 'ban', methods: ['PATCH'])]
+    #[Route('/blacklist/{address}', name: 'ban', methods: ['PATCH'])]
     public function ban(string $address, EntityManagerInterface $em): JsonResponse
     {
       try {
@@ -120,7 +120,7 @@ class IpAddressController extends AbstractController
         }
       }
     }
-    #[Route('/blacklist_remove/{ip}', name: 'unban', methods: ['PATCH'])]
+    #[Route('/blacklist/{ip}', name: 'unban', methods: ['DELETE'])]
     public function unban(string $ip, EntityManagerInterface $em): JsonResponse
     {
       try {

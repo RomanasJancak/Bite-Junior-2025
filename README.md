@@ -63,8 +63,8 @@ IP_MAX_UNBAN_QUANTITY=10 // maximum allowed IP unbans per API request
  - API ENDPOINTS 
 
  1. /api/ip/find/{address} - valid IPV4 addreses supports multiple IP's but needs to be separated by comma ",". Used to get data of the IP(s). Informs user if the ip format is invalid or the IP is blacklisted.
- 2. /api/ip/blacklist_ad/{ip} - valid IPV4 addreses supports multiple IP's but needs to be separated by comma "," Used to blacklist IP(s). Informs user if the ip is : not found in the list [1],is already int the blacklist.
- 3. /api/ip/blacklist_remove/{ip} - valid IPV4 address, supports multiple IP's but need to be separated by comma "," Used to remove IP(S) from the blacklist. Informs user if the ip is not found or ip is not in blacklist.
+ 2. /api/ip/blacklist/{ip} [patch] - valid IPV4 addreses supports multiple IP's but needs to be separated by comma "," Used to blacklist IP(s). Informs user if the ip is : not found in the list [1],is already int the blacklist.
+ 3. /api/ip/blacklist/{ip} [delete]- valid IPV4 address, supports multiple IP's but need to be separated by comma "," Used to remove IP(S) from the blacklist. Informs user if the ip is not found or ip is not in blacklist.
  4. /api/ip/{ips} - alid IPV4 address, supports multiple IP's but need to be separated by comma ",". Used to delete IP(s). Informs the user if IP is not found. Blacklist entry is automatically deleted "CASCADE"[2]
 
 # Design desitions : 
