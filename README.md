@@ -48,3 +48,6 @@ A Docker environment has been provided for your convenience.
 - Code organization and readability
 - Error handling
 - Test coverage
+
+
+## Runing the code :
