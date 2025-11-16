@@ -51,3 +51,6 @@ A Docker environment has been provided for your convenience.
 
 
 ## Runing the code :
+
+## Future release notes :
+- If external API allows bulk Ednpoint then Implement bulk endpoint call to that API
