@@ -80,10 +80,14 @@ class IpAddressController extends AbstractController
           return $this->json(['error' => 'Cannot find more than ' . $_ENV['IP_MAX_FIND_QUNANTITY'] . ' IP addresses at once'], 400);
         }
         $message = [];
+
         foreach($ips as $address){
           $found = $em->getRepository(IpAddress::class)->findOneBy(['ip' => $address]);
           if(!$found){
             $found = $ipAddressService->getOneFresh($address);
+            $em->persist($found);
+            $em->flush();
+            $message[] = $found->getJsonData();
           }else{
             if($found->isBlacklisted()){
               $message[] = "IP address '$address' is blacklisted.";
