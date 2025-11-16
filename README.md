@@ -73,7 +73,7 @@ IP_MAX_UNBAN_QUANTITY=10 // maximum allowed IP unbans per API request
  - Used try catch block and condition cheking on enviroment for easier code debuging.
  - Used CASCADE on blacklist to implemt idea "datbase should be able to function regardles backend implementation"
  - Left in the code base only the minimum code. Not much use to think ahead when there are lots unknows about programs usage. Too much overthinking (or over preparness ) might waste time.
-
+ - Test were not done due to multiple error trying install any packages for testing. Might had more time would do some "quick-fix-manual" test.
 ## Future release notes :
 - If external API allows bulk Ednpoint then Implement bulk endpoint call to that API
 - Implement API KEY for app usage( users, roles , permissions will have to be done )
