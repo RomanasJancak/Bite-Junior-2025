@@ -7,6 +7,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: BlackListRepository::class)]
+#[ORM\Table(name: "blacklist")]
 class BlackList
 {
     #[ORM\Id]
