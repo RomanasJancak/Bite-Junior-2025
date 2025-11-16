@@ -1,6 +1,9 @@
 <?php
 
+
 namespace App\Controller\Api;
+
+use OpenApi\Annotations as OA;
 
 use App\Entity\IpAddress;
 use App\Entity\BlackList;
@@ -19,6 +22,32 @@ use App\Exception\IpBlackListedException;
 #[Route('/api/ip', name: 'api_ip_address_')]
 class IpAddressController extends AbstractController
 {   
+    /**
+     * @OA\Get(
+     *      path="/api/ip/find/{address}",
+     *      summary="Find IP information",
+     *      description="Retrieve details for one or multiple IP addresses (comma-separated).",
+     *      tags={"IP"},
+     *      @OA\Parameter(
+     *          name="address",
+     *          in="path",
+     *          required=true,
+     *          description="Comma-separated list of IPs to search",
+     *          @OA\Schema(type="string", example="8.8.8.8,1.1.1.1")
+     *      ),
+     *      @OA\Response(
+     *         response=200,
+     *         description="Successfully retrieved IP information",
+     *         @OA\JsonContent(
+     *           type="object",
+     *             @OA\Property(property="success", type="boolean"),
+     *             @OA\Property(property="ip_data", type="array", @OA\Items(type="object"))
+     *         )
+     *      ),
+     *    @OA\Response(response=400, description="Too many IPs "),
+     *    @OA\Response(response=500, description="Internal server error")
+     * )
+     */
     #[Route('/find/{address}', name: 'find', methods: ['GET'])]
     public function find(string $address, EntityManagerInterface $em,IpAddressService $ipAddressService): JsonResponse
     {
@@ -74,7 +103,23 @@ class IpAddressController extends AbstractController
         }
       }
     }
-    
+    /**
+     * @OA\Patch(
+     *    path="/api/ip/blacklist/{address}",
+     *    summary="Add one or more IP addresses to blacklist",
+     *    tags={"IP"},
+     *    @OA\Parameter(
+     *      name="address",
+     *      in="path",
+     *      required=true,
+     *      description="Comma-separated list of IPs to blacklist",
+     *      @OA\Schema(type="string", example="8.8.8.8,1.1.1.1")
+     *    ),
+     *    @OA\Response(response=200, description="IPs blacklisted successfully"),
+     *    @OA\Response(response=400, description="Too many IPs or invalid IP"),
+     *    @OA\Response(response=500, description="Internal server error")
+     * )
+     */
     #[Route('/blacklist/{address}', name: 'ban', methods: ['PATCH'])]
     public function ban(string $address, EntityManagerInterface $em): JsonResponse
     {
@@ -120,6 +165,23 @@ class IpAddressController extends AbstractController
         }
       }
     }
+    /**
+     * @OA\delete(
+     *     path="/api/ip/blacklist/{ip}",
+     *     summary="Remove one or more IPs from the blacklist",
+     *     tags={"IP"},
+     *     @OA\Parameter(
+     *         name="ip",
+     *         in="path",
+     *         required=true,
+     *         description="Comma-separated list of IPs to unban",
+     *         @OA\Schema(type="string", example="8.8.8.8,1.1.1.1")
+     *     ),
+     *     @OA\Response(response=200, description="IPs removed from blacklist successfully"),
+     *     @OA\Response(response=400, description="Invalid IP or too many requests"),
+     *     @OA\Response(response=500, description="Internal server error")
+     * )
+     */
     #[Route('/blacklist/{ip}', name: 'unban', methods: ['DELETE'])]
     public function unban(string $ip, EntityManagerInterface $em): JsonResponse
     {
@@ -163,6 +225,23 @@ class IpAddressController extends AbstractController
         }
       }
     }
+    /**
+     * @OA\Delete(
+     *     path="/api/ip/{ips}",
+     *     summary="Delete one or multiple IP records",
+     *     tags={"IP"},
+     *     @OA\Parameter(
+     *         name="ips",
+     *         in="path",
+     *         required=true,
+     *         description="Comma-separated list of IPs to delete",
+     *         @OA\Schema(type="string", example="8.8.8.8,1.1.1.1")
+     *     ),
+     *     @OA\Response(response=200, description="IP records deleted successfully"),
+     *     @OA\Response(response=400, description="Invalid IP or too many deletions"),
+     *     @OA\Response(response=500, description="Internal server error")
+     * )
+     */
     #[Route('/{ips}', name: 'delete', methods: ['DELETE'])]
     public function delete(string $ips, EntityManagerInterface $em): JsonResponse
     {
