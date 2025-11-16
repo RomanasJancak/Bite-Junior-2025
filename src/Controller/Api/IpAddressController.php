@@ -11,15 +11,18 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 //--------------
 use App\Service\IpRetrievalExternalApi;
+use App\Service\IpAddressService;
 
 
 #[Route('/api/ip-addresses', name: 'api_ip_address_')]
 class IpAddressController extends AbstractController
 {
     #[Route('', name: 'index', methods: ['GET'])]
-    public function index(IpAddressRepository $ipRepository): JsonResponse
+    public function index(IpAddressRepository $ipRepository, IpAddressService $ipAddressService): JsonResponse
     {
-        $ips = $ipRepository->findAll();
+      try {
+        //$ips = $ipRepository->findAll();
+        $ips = $ipAddressService->getAllFresh();
 
         $data = array_map(fn(IpAddress $ip) => [
             'id' => $ip->getId(),
@@ -29,6 +32,16 @@ class IpAddressController extends AbstractController
         ], $ips);
 
         return $this->json($data);
+      } catch (\Throwable $e) {
+        if ($this->getParameter('kernel.environment') === 'dev') {
+          return $this->json([
+              'error' => 'Internal server error',
+              'message' => $e->getMessage(),
+              'file' => $e->getFile(),
+              'line' => $e->getLine(),
+          ], 500);
+        }
+      }
     }
 
     #[Route('', name: 'create', methods: ['POST'])]
@@ -55,21 +68,18 @@ class IpAddressController extends AbstractController
     }
     
     #[Route('/find/{address}', name: 'find', methods: ['GET'])]
-    public function find(string $address, EntityManagerInterface $em,IpRetrievalExternalApi $ApiService)
+    public function find(
+      string $address, 
+      EntityManagerInterface $em,
+      IpRetrievalExternalApi $ApiService,
+      IpAddressService $ipAddressService): JsonResponse
     {
         $found = $em->getRepository(IpAddress::class)->findOneBy(['ip' => $address]);
         if(!$found){
-          $data = $ApiService->fetchData($address);
-          $ip = new IpAddress();
-          $ip->setAddress($data['ip']);
-          $em->persist($ip);
-          $em->flush();
-          $found = $ip;
+          $found = $ipAddressService->getOneFresh($address);
         }
         if($found->isTooOld()){
-          $em->remove($found);  
-          $em->flush(); 
-          $found = $ApiService->fetchData($address);
+          $found = $ipAddressService->getOneFresh($address);
           $ip = new IpAddress();
           $ip->setAddress($found['ip']);
           $em->persist($ip);
