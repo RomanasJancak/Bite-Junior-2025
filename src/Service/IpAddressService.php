@@ -6,6 +6,8 @@ use App\Service\IpRetrievalExternalApi as ApiClient;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\IpAddress;
 
+use App\Exception\IpBlackListedException;
+
 class IpAddressService
 {
   public function __construct(
@@ -47,6 +49,7 @@ class IpAddressService
   public function getAllFresh(): array
   {
     $ips = $this->repo->findAll();
+    $ips = array_filter($ips, fn(IpAddress $ip) => !$ip->isBlacklisted());
     foreach ($ips as $key => $ip) {
       if ($ip->isTooOld()) {
         $this->em->remove($ip);
@@ -58,15 +61,50 @@ class IpAddressService
       }
     }
     $this->em->flush();
-    //dd($data);
     return $ips;
+  }
+  public function getBlacklistedIps(): array
+  {
+    $ips = $this->repo->findAll();
+    $blacklistedIps = array_filter($ips, fn(IpAddress $ip) => $ip->isBlacklisted());
+    return $blacklistedIps;
+  }
+  public function getBlackListedIpsFromArray(array $ips): array
+  {
+    $blacklistedIps = [];
+    foreach ($ips as $ip) {
+      $ipAddress = $this->repo->findOneBy(['ip' => $ip]);
+      if ($ipAddress && $ipAddress->isBlacklisted()) {
+        $blacklistedIps[] = $ipAddress;
+      }
+    }
+    return $blacklistedIps;
+  }
+  public function refreshIp(IpAddress $ipAddress): IpAddress
+  {
+    $data = $this->apiClient->fetchData($ipAddress->getAddress());
+    $ipAddress->setIp($data['ip']);
+    $ipAddress->setJsonData($data);
+    $this->em->persist($ipAddress);
+    $this->em->flush();
+
+    return $ipAddress;
+  }
+  public function refreshIps(array $ipAddresses): array
+  {
+    foreach ($ipAddresses as $ipAddress) {
+      $this->refreshIp($ipAddress);
+    }
+    return $ipAddresses;
   }
   public function getOneFresh(string $ip): IpAddress
   {
     $ipAddress = $this->repo
     //->findOneByAddress($ip);
     ->findOneBy(['ip' => $ip]);
-
+    if($ipAddress && $ipAddress->isBlacklisted()){
+      throw new \IpBlacklistedException($ip);
+    }
     if ($ipAddress && !$ipAddress->isTooOld()) {
       return $ipAddress;
     }

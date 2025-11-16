@@ -13,11 +13,12 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Service\IpRetrievalExternalApi;
 use App\Service\IpAddressService;
 
+use App\Exception\IpBlackListedException;
 
-#[Route('/api/ip-addresses', name: 'api_ip_address_')]
+#[Route('/api/ip', name: 'api_ip_address_')]
 class IpAddressController extends AbstractController
 {
-    #[Route('', name: 'index', methods: ['GET'])]
+    //#[Route('', name: 'index', methods: ['GET'])]
     public function index(IpAddressRepository $ipRepository, IpAddressService $ipAddressService): JsonResponse
     {
       try {
@@ -29,9 +30,11 @@ class IpAddressController extends AbstractController
             'address' => $ip->getAddress(),
             'created_at' => $ip->getCreatedAt()?->format('Y-m-d H:i:s'),
             'updated_at' => $ip->getUpdatedAt()?->format('Y-m-d H:i:s'),
+            'data' => $ip->getJsonData(),
         ], $ips);
 
         return $this->json($data);
+      
       } catch (\Throwable $e) {
         if ($this->getParameter('kernel.environment') === 'dev') {
           return $this->json([
@@ -44,19 +47,15 @@ class IpAddressController extends AbstractController
       }
     }
 
-    #[Route('', name: 'create', methods: ['POST'])]
-    public function create(Request $request, EntityManagerInterface $em): JsonResponse
+    //#[Route('', name: 'create', methods: ['POST'])]
+    public function create(Request $request, EntityManagerInterface $em, IpAddressService $ipAddressService): JsonResponse
     {
         $payload = json_decode($request->getContent(), true);
 
         if (empty($payload['address'])) {
             return $this->json(['error' => 'Missing "address"'], 400);
         }
-
-        $ip = new IpAddress();
-        $ip->setAddress($payload['address']);
-        $ip->setCreatedAt(new \DateTimeImmutable());
-
+        $ip = $ipAddressService->getOneFresh($payload['address']);
         $em->persist($ip);
         $em->flush();
 
@@ -74,6 +73,7 @@ class IpAddressController extends AbstractController
       IpRetrievalExternalApi $ApiService,
       IpAddressService $ipAddressService): JsonResponse
     {
+      try{
         $found = $em->getRepository(IpAddress::class)->findOneBy(['ip' => $address]);
         if(!$found){
           $found = $ipAddressService->getOneFresh($address);
@@ -87,14 +87,34 @@ class IpAddressController extends AbstractController
           $found = $ip;
         }
         if ($found->isBlacklisted()){
-          return $this->json(['error' => 'IP address is blacklisted'], 403);
+          throw new \Exception('IP address is blacklisted', 403);
         }
         return $this->json([
           'id' => $found->getId(),
           'address' => $found->getIp(),
         ]);
+      } catch (IpBlacklistedException $e) {
+        return $this->json([
+            'error' => $e->getMessage(),
+        ], 403);
+      } catch (\Throwable $e) {
+        $statusCode = $e->getCode() === 403 ? 403 : 500;
+        $errorMessage = $e->getCode() === 403 ? $e->getMessage() : 'Internal server error';
+        if ($this->getParameter('kernel.environment') === 'dev') {
+          return $this->json([
+              'error' => $errorMessage,
+              'message' => $e->getMessage(),
+              'file' => $e->getFile(),
+              'line' => $e->getLine(),
+          ], $statusCode);
+        } else {
+          return $this->json([
+              'error' => $errorMessage,
+          ], $statusCode);
+        }
+      }
     }
-    #[Route('/{id}', name: 'show', methods: ['GET'])]
+    //#[Route('/{id}', name: 'show', methods: ['GET'])]
     public function show(int $id,EntityManagerInterface $em): JsonResponse
     {
       try{
@@ -108,6 +128,7 @@ class IpAddressController extends AbstractController
             'address' => $ip->getAddress(),
             'createdAt' => $ip->getCreatedAt()?->format('Y-m-d H:i:s'),
             'updatedAt' => $ip->getUpdatedAt()?->format('Y-m-d H:i:s'),
+            'jsonData' => $ip->getJsonData(),
         ]);
        } catch (\Throwable $e) {
         if ($this->getParameter('kernel.environment') === 'dev') {
@@ -121,9 +142,17 @@ class IpAddressController extends AbstractController
       }
     }
     
-    #[Route('/blacklist_add/{id}', name: 'ban', methods: ['PATCH'])]
-    public function ban(IpAddress $ip, EntityManagerInterface $em): JsonResponse
+    #[Route('/blacklist_add/{ip}', name: 'ban', methods: ['PATCH'])]
+    public function ban(string $ip, EntityManagerInterface $em): JsonResponse
     {
+      try {
+        $ip = $em->getRepository(IpAddress::class)->findOneBy(['ip' => $ip]);
+        if (!$ip) {
+            return $this->json(['error' => 'IP address not found'], 404);
+        }
+        if ($ip->isBlacklisted()) {
+            return $this->json(['error' => 'IP address is already blacklisted'], 400);
+        }
         $blacklistItem = new \App\Entity\BlackList();
         $blacklistItem->setAddedAt(new \DateTimeImmutable());
         $blacklistItem->setIpAddress($ip);
@@ -133,34 +162,68 @@ class IpAddressController extends AbstractController
         $em->flush();
 
         return $this->json([
-            'id' => $ip->getId(),
-            'address' => $ip->getAddress(),
-            'createdAt' => $ip->getCreatedAt()?->format('Y-m-d H:i:s'),
-            'updatedAt' => $ip->getUpdatedAt()?->format('Y-m-d H:i:s'),
+            'success' => true,
+            'message' => 'IP address blacklisted successfully',
         ]);
+      } catch (\Throwable $e) {
+        if ($this->getParameter('kernel.environment') === 'dev') {
+          return $this->json([
+              'error' => 'Internal server error',
+              'message' => $e->getMessage(),
+              'file' => $e->getFile(),
+              'line' => $e->getLine(),
+          ], 500);
+        }
+      }
     }
-    #[Route('/blacklist_remove/{id}', name: 'unban', methods: ['PATCH'])]
-    public function unban(IpAddress $ip, EntityManagerInterface $em): JsonResponse
+    #[Route('/blacklist_remove/{ip}', name: 'unban', methods: ['PATCH'])]
+    public function unban(string $ip, EntityManagerInterface $em): JsonResponse
     {
+        $ip = $em->getRepository(IpAddress::class)->findOneBy(['ip' => $ip]);
+        if (!$ip) {
+            return $this->json(['error' => 'IP address not found'], 404);
+        }
         $blacklistItem = $em->getRepository(\App\Entity\BlackList::class)->findOneBy(['ipAddress' => $ip]);
         if ($blacklistItem) {
             $em->remove($blacklistItem);
             $em->flush();
+        }else{
+          return $this->json(['error' => 'IP address is not blacklisted'], 400);
         }
 
         return $this->json([
-            'id' => $ip->getId(),
-            'address' => $ip->getAddress(),
-            'createdAt' => $ip->getCreatedAt()?->format('Y-m-d H:i:s'),
-            'updatedAt' => $ip->getUpdatedAt()?->format('Y-m-d H:i:s'),
+            'success' => true,
+            'message' => 'IP address removed from blacklist successfully',
         ]);
     }
-    #[Route('/{id}', name: 'delete', methods: ['DELETE'])]
-    public function delete(IpAddress $ip, EntityManagerInterface $em): JsonResponse
+    #[Route('/{ips}', name: 'delete', methods: ['DELETE'])]
+    public function delete(string $ips, EntityManagerInterface $em): JsonResponse
     {
-        $em->remove($ip);
+      try {
+        // $ips = explode(',', $ips);
+        // if(count($ips) > 10){
+        //   return $this->json(['error' => 'Cannot delete more than 10 IP addresses at once'], 400);
+        // }
+        $ip = $em->getRepository(IpAddress::class)->find($ips);
+        if (!$ip) {
+            return $this->json(['error' => 'IP address not found'], 404);
+        }
+        $em->remove($ip); // blacklist will be removed due to cascade
         $em->flush();
 
-        return $this->json(null, 204);
+        return $this->json([
+          'success' => true,
+          'message' => 'IP address deleted successfully',
+        ], 204);
+      } catch (\Throwable $e) {
+        if ($this->getParameter('kernel.environment') === 'dev') {
+          return $this->json([
+              'error' => 'Internal server error',
+              'message' => $e->getMessage(),
+              'file' => $e->getFile(),
+              'line' => $e->getLine(),
+          ], 500);
+        }
+      }
     }
 }
